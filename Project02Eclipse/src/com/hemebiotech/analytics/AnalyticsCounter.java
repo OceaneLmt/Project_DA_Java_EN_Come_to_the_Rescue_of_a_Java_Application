@@ -1,43 +1,59 @@
 package com.hemebiotech.analytics;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+
+import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class AnalyticsCounter {
-	private static int headacheCount = 0;	// initialize to 0
-	private static int rashCount = 0;		// initialize to 0
-	private static int pupilCount = 0;		// initialize to 0
+	
+	String symptomsFilePath = "C:\\Users\\Ocean\\hemeBiotechOC\\Project_DA_Java_EN_Come_to_the_Rescue_of_a_Java_Application\\Project02Eclipse\\symptoms.txt";
+	SymptomsReader reader = new SymptomsReader(symptomsFilePath);
+	
+	/**
+	 * used to group symptoms by their occurrences
+	 * 
+	 * @return symptomsOccurences
+	 */
+	public Map<String, Long> symptomsOccurences() {
+		return reader.getSymptoms().stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+	}
+
+	/**
+	 * Convert Map to TreeMap to sort symptomsOccurences alphabetically
+	 * 
+	 * @return sortedSymptomsOccurences
+	 */
+	public Map<String, Long> sortSymptomsOccurrences() {
+		Map<String, Long> sortedSymptomsOccurences = new TreeMap<String, Long>();
+		sortedSymptomsOccurences.putAll(symptomsOccurences());
+		return sortedSymptomsOccurences;
+	}
+	
+	/**
+	 * Writes symptoms' Occurrences into a file named "result.out"
+	 * 
+	 * @param sortedSymptomsOccurences
+	 * @throws IOException
+	 */
+	public void writeSymptomsOccurrencesFile(Map<String, Long> sortedSymptomsOccurences) throws IOException {
+		String result = "Symptoms Occurrences: \n";
+		for (Entry<String, Long> entry : sortedSymptomsOccurences.entrySet()) {
+			result += entry.getKey() + "=" + entry.getValue() + ";\n";
+		} // Used a for loop to display Map without curly brackets
+		BufferedWriter bw = new BufferedWriter(new FileWriter("results.out"));
+		bw.write(result);
+		bw.close();
+	}
+	
 	
 	public static void main(String args[]) throws Exception {
-		// first get input
-		BufferedReader reader = new BufferedReader (new FileReader("symptoms.txt"));
-		String line = reader.readLine();
-
-		int i = 0;	// set i to 0
-		int headCount = 0;	// counts headaches
-		while (line != null) {
-			i++;	// increment i
-			System.out.println("symptom from file: " + line);
-			if (line.equals("headache")) {
-				headCount++;
-				System.out.println("number of headaches: " + headCount);
-			}
-			else if (line.equals("rush")) {
-				rashCount++;
-			}
-			else if (line.contains("pupils")) {
-				pupilCount++;
-			}
-
-			line = reader.readLine();	// get another symptom
-		}
-		
-		// next generate output
-		FileWriter writer = new FileWriter ("result.out");
-		writer.write("headache: " + headacheCount + "\n");
-		writer.write("rash: " + rashCount + "\n");
-		writer.write("dialated pupils: " + pupilCount + "\n");
-		writer.close();
+		AnalyticsCounter analyticsCounter = new AnalyticsCounter();
+		analyticsCounter.writeSymptomsOccurrencesFile(analyticsCounter.sortSymptomsOccurrences());
 	}
 }
